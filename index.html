@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>网盘资源搜索</title>
 <style>
-  /* 省略你原有的样式，保持不变 */
+  /* 样式同你提供的，简略示例 */
   :root{
     --bg:#f6f8fa;
     --primary:#2b9be6;
@@ -16,7 +16,342 @@
     --radius:12px;
     font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",PingFang SC,"Hiragino Sans GB","Microsoft YaHei",sans-serif;
   }
-  /* ... 其余样式保持不变，省略显示 */
+  html {
+    overflow-y: scroll;
+  }
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:#2b2b2b;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+  }
+  .container{max-width:1100px;margin:0 auto;padding:40px 20px 80px;}
+  .header{text-align:center;padding:36px 0 18px;}
+  .title{font-size:44px;background:var(--primary-grad);-webkit-background-clip:text;color:transparent;margin:0 0 6px;font-weight:600}
+  .subtitle{color:var(--muted);margin:0 0 28px}
+  .search-wrap{
+    display:flex;
+    justify-content:center;
+    margin-bottom:28px;
+  }
+  .search-box{
+    width:72%;
+    min-width:360px;
+    background:var(--card);
+    border-radius:40px;
+    box-shadow:0 8px 30px rgba(50,60,70,0.06);
+    display:flex;
+    align-items:center;
+    padding:0;
+    transition:all 0.2s ease;
+    overflow: hidden;
+  }
+  .select-wrapper {
+    position: relative;
+    max-width: 130px;
+    border-top-left-radius: 40px;
+    border-bottom-left-radius: 40px;
+    overflow: hidden;
+    background: transparent;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .select-wrapper select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--primary);
+    font-weight: 500;
+    font-size: 16px;
+    padding: 12px 40px 12px 12px;
+    width: 100%;
+    cursor: pointer;
+  }
+  .select-wrapper::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: 12px;
+    width: 16px;
+    height: 16px;
+    pointer-events: none;
+    transform: translateY(-50%);
+    background-image: url('data:image/svg+xml;utf8,<svg fill="%232b9be6" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+    background-repeat: no-repeat;
+    background-size: contain;
+  }
+  .search-box input{
+    flex:1;
+    border:0;
+    outline:none;
+    font-size:16px;
+    padding:12px 20px;
+    background:transparent;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    border-top-right-radius: 40px;
+    border-bottom-right-radius: 40px;
+    font-weight: 500;
+  }
+  .search-btn{
+    background:var(--primary-grad);
+    color:#fff;
+    border:none;
+    padding:0 28px;
+    height: 48px;
+    border-top-right-radius: 40px;
+    border-bottom-right-radius: 40px;
+    font-weight:600;
+    cursor:pointer;
+    box-shadow:0 6px 12px rgba(43,155,230,0.18);
+    transition:all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 16px;
+    user-select: none;
+    line-height: 1;
+  }
+  .search-btn:hover:not(:disabled){
+    transform:translateY(-1px);
+    box-shadow:0 8px 16px rgba(43,155,230,0.25);
+  }
+  .search-btn:active:not(:disabled){
+    transform:scale(0.96);
+  }
+  .search-btn:disabled {
+    background: #a3c5f7 !important;
+    cursor: not-allowed;
+    box-shadow: none !important;
+    transform: none !important;
+    opacity: 0.6;
+  }
+  .spinner {
+    border: 3px solid rgba(255,255,255,0.6);
+    border-top: 3px solid #fff;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  .hot-card{
+    background:var(--card);
+    padding:18px;
+    border-radius:14px;
+    box-shadow:0 6px 14px rgba(50,60,70,0.04);
+    margin:18px 0;
+  }
+  .hot-title{
+    color:var(--primary);
+    font-weight:600;
+    margin:0 0 10px;
+  }
+  .pills{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+  .pill{
+    background:var(--pill-bg);
+    padding:8px 12px;
+    border-radius:22px;
+    font-size:13px;
+    color:var(--primary);
+    cursor:pointer;
+    border:1px solid rgba(43,155,230,0.06);
+    transition:all 0.2s ease;
+  }
+  .pill:hover:not(:disabled){
+    background:var(--primary);
+    color:#fff;
+    box-shadow:0 4px 12px rgba(43,155,230,0.25);
+  }
+  .pill:active:not(:disabled){
+    transform:scale(0.94);
+  }
+  .pill:disabled {
+    background: #a3c5f7 !important;
+    color: #fff !important;
+    cursor: not-allowed;
+    box-shadow: none !important;
+    transform: none !important;
+    opacity: 0.6;
+  }
+  .results {
+    visibility: hidden;
+    height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: height 0.3s ease, opacity 0.3s ease;
+  }
+  .results.show {
+    visibility: visible;
+    height: auto;
+    opacity: 1;
+    overflow: visible;
+  }
+  .results-card{
+    background:var(--card);
+    padding:18px;
+    border-radius:12px;
+    box-shadow:0 8px 20px rgba(50,60,70,0.05);
+    min-height: 300px;
+  }
+  .results-header{
+    font-size:18px;
+    color:#333;
+    font-weight:600;
+    margin-bottom:8px;
+  }
+  .result-item{
+    display:flex;
+    align-items:center;
+    padding:1px;
+    border-radius:10px;
+    border:1px solid #f0f4f8;
+    margin-bottom:10px;
+    transition:all 0.2s ease;
+    background-color: var(--bg);
+  }
+  .result-item:hover{
+    box-shadow:0 6px 18px rgba(0,0,0,0.06);
+    transform:translateY(-2px);
+  }
+  .result-icon{
+    width:44px;
+    height:44px;
+    border-radius:8px;
+    background:#eef8ff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin-right:12px;
+    font-size:20px;
+  }
+  .result-icon img{
+    width:32px;
+    height:32px;
+    border-radius:6px;
+    user-select:none;
+  }
+  .result-main{
+    flex:1;
+  }
+  .result-title{
+    color:var(--primary);
+    font-weight: normal;
+    margin:0 0 6px;
+    font-size:15px;
+  }
+  .result-title a {
+    color: var(--primary);
+    text-decoration: none;
+  }
+  .result-title a:hover {
+    text-decoration: underline;
+  }
+  mark {
+    background: transparent;
+    font-weight: 600;
+    padding: 0 2px;
+    border-radius: 0;
+    color: var(--primary);
+  }
+  .loading {
+    font-size: 16px;
+    color: var(--muted);
+    text-align: center;
+    padding: 20px 0;
+  }
+  @media (max-width:800px){
+    .search-wrap{
+      flex-direction: column;
+      align-items: stretch;
+      width: 100%;
+    }
+    .search-box{
+      width: 100%;
+      min-width: auto;
+      border-radius: 12px;
+      flex-direction: column;
+      box-shadow: none;
+      overflow: visible;
+    }
+    .select-wrapper {
+      max-width: 100%;
+      border-radius: 12px 12px 0 0;
+      width: 100%;
+    }
+    .select-wrapper select {
+      padding: 12px 14px;
+      background-image: none !important;
+      text-align: left;
+    }
+    .search-box input{
+      width: 100%;
+      border-radius: 0 0 12px 12px;
+      padding: 17px 14px;
+    }
+    .search-btn{
+      width: 100%;
+      border-radius: 12px;
+      border-top-left-radius: 0;
+      border-top-right-radius: 0;
+      height: 44px;
+      padding: 0 20px;
+      font-size: 15px;
+      margin-top: 5px;
+      align-self: stretch;
+    }
+    .search-btn .spinner {
+      width: 14px;
+      height: 14px;
+      border-width: 2px;
+      border-top-width: 2px;
+    }
+    .container{
+      padding:20px;
+    }
+    .title{
+      font-size:34px;
+    }
+  }
+  .footer-declaration {
+    max-width: 1100px;
+    margin: 40px auto 20px;
+    padding: 16px 24px;
+    font-size: 14px;
+    color: #666;
+    text-align: center;
+    line-height: 1.5;
+    user-select: text;
+    border: 1.5px solid #ccc;
+    border-radius: 12px;
+    background-color: #f9f9f9;
+    box-sizing: border-box;
+  }
+  .footer-declaration a {
+    color: var(--primary);
+    text-decoration: none;
+  }
+  .footer-declaration a:hover {
+    text-decoration: underline;
+  }
+  .footer-declaration .declaration-title {
+    font-size: 18px;
+    font-weight: 700;
+    display: inline-block;
+    margin-bottom: 6px;
+  }
 </style>
 </head>
 <body>
@@ -46,7 +381,7 @@
 
     <div class="hot-card" aria-live="polite" aria-atomic="true">
       <div class="hot-title">热门搜索</div>
-      <div class="pills" id="hotList"></div>
+      <div class="pills" id="hotList">正在加载热门搜索词...</div>
     </div>
 
     <div id="results" class="results">
@@ -57,11 +392,11 @@
     </div>
   </div>
 
-<div class="footer-declaration" role="contentinfo" aria-label="网站声明">
-  <p><strong class="declaration-title">声明</strong><br>
-  本站所有资源均来自于网络，仅作个人公益学习，请勿非法&amp;商业传播，如有侵权，请及时发邮件至 jiajiasou@foxmail.com 告知删除。</p>
-  <p>Copyright © 2025. All Rights Reserved. | 珈珈搜索 | Design by</p>
-</div>
+  <div class="footer-declaration" role="contentinfo" aria-label="网站声明">
+    <p><strong class="declaration-title">声明</strong><br>
+    本站所有资源均来自于网络，仅作个人公益学习，请勿非法&amp;商业传播，如有侵权，请及时发邮件至 jiajiasou@foxmail.com 告知删除。</p>
+    <p>Copyright © 2025. All Rights Reserved. | 珈珈搜索 | Design by</p>
+  </div>
 
 <script>
   const hotList = document.getElementById('hotList');
@@ -71,7 +406,7 @@
   const btn = document.getElementById('searchBtn');
   const panSelect = document.getElementById('panSelect');
 
-  // 你自己服务器上的代理接口地址，请根据实际替换
+  // 这里填你的代理接口完整URL，比如：https://你的域名/proxy.php?url=
   const proxyBase = 'https://你的域名/proxy.php?url=';
 
   let lastResults = [];
@@ -87,13 +422,13 @@
       if (!res.ok) throw new Error('网络错误');
       const json = await res.json();
       if (!json.hot_searches || !Array.isArray(json.hot_searches)) {
-        hotList.innerHTML = '';
+        hotList.innerHTML = '接口返回格式不正确';
         return;
       }
       const hot = json.hot_searches.slice(0, 12);
       renderHotSearches(hot);
     } catch (e) {
-      hotList.innerHTML = '';
+      hotList.innerHTML = '热门搜索加载失败';
     }
   }
 
