@@ -427,7 +427,7 @@
 
     try {
       const res = await Promise.race([
-        const res = await fetch(`https://feapi.xyz/so/proxy.php?url=${encodeURIComponent('https://feapi.xyz/so/remen.php')}`);
+        fetch('https://feapi.xyz/remen.php'),
         timeout
       ]);
       if (!res.ok) throw new Error('网络错误');
@@ -526,8 +526,7 @@
     setLoadingState(true);
 
     try {
-      const res = await fetch(`https://feapi.xyz/so/proxy.php?url=${encodeURIComponent('https://feapi.xyz/api/search.php?q=' + encodeURIComponent(q))}`);
-
+      const res = await fetch(`https://feapi.xyz/api/search.php?q=${encodeURIComponent(q)}`);
       if (!res.ok) throw new Error('网络错误');
       const json = await res.json();
       lastResults = json.data || [];
