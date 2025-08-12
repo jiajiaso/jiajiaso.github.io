@@ -12,7 +12,8 @@
     async function loadHotSearches() {
       const hotList = document.getElementById('hotList');
       try {
-        const res = await fetch('https://feapi.xyz/remen.php');
+        // 这里改成你自己的服务器代理接口地址
+        const res = await fetch('https://feapi.xyz/so/proxy_remen.php');
         if (!res.ok) throw new Error('网络响应错误: ' + res.status);
         const json = await res.json();
         if (!json.hot_searches || !Array.isArray(json.hot_searches)) {
