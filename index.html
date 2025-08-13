@@ -543,40 +543,61 @@ document.getElementById('toggle-intro').addEventListener('click', function() {
     });
   }
 
-  async function doSearch(q) {
-    clearResults();
-    if (!q) {
-      resultsEl.classList.remove('show');
-      alert('请输入关键词后再搜索');
-      return;
-    }
-    resultsEl.classList.add('show');
-
-    setLoadingState(true);
-
-    try {
-      const targetUrl = encodeURIComponent(`https://feapi.xyz/api/search.php?q=${encodeURIComponent(q)}`);
-      const res = await fetch(proxyBase + targetUrl);
-      if (!res.ok) throw new Error('网络错误');
-      const json = await res.json();
-      lastResults = json.data || [];
-      renderResults();
-    } catch (e) {
-      clearResults();
-      const err = document.createElement('div');
-      err.className = 'result-item';
-      err.innerHTML = `
-        <div class="result-icon">⚠️</div>
-        <div class="result-main">
-          <div class="result-title">请求失败</div>
-          <div class="result-meta">${e.message}</div>
-        </div>
-      `;
-      resultsList.appendChild(err);
-    } finally {
-      setLoadingState(false);
-    }
+async function doSearch(q) {
+  clearResults();
+  if (!q) {
+    resultsEl.classList.remove('show');
+    alert('请输入关键词后再搜索');
+    return;
   }
+  resultsEl.classList.add('show');
+
+  setLoadingState(true);
+
+  try {
+    const targetUrl = encodeURIComponent(`https://feapi.xyz/api/search.php?q=${encodeURIComponent(q)}`);
+    const res = await fetch(proxyBase + targetUrl);
+    if (!res.ok) throw new Error('网络错误');
+    const json = await res.json();
+
+    // 新逻辑：从接口返回的json中提取所有数组字段合并，优先用json.data
+    let results = [];
+
+    if (Array.isArray(json.data)) {
+      results = json.data;
+    } else {
+      // 遍历所有字段，找数组并合并
+      for (const key in json) {
+        if (Array.isArray(json[key])) {
+          results = results.concat(json[key]);
+        }
+      }
+      // 如果还没数据且json本身是数组
+      if (results.length === 0 && Array.isArray(json)) {
+        results = json;
+      }
+    }
+
+    lastResults = results;
+    renderResults();
+
+  } catch (e) {
+    clearResults();
+    const err = document.createElement('div');
+    err.className = 'result-item';
+    err.innerHTML = `
+      <div class="result-icon">⚠️</div>
+      <div class="result-main">
+        <div class="result-title">请求失败</div>
+        <div class="result-meta">${e.message}</div>
+      </div>
+    `;
+    resultsList.appendChild(err);
+  } finally {
+    setLoadingState(false);
+  }
+}
+
 
   function renderResults(){
     clearResults();
